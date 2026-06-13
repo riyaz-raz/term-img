@@ -1,0 +1,17 @@
+[package]
+name = "term-img"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+viuer = "0.7.0"  # Latest stable version
+image = "0.24.9"  # Compatible with viuer 0.7.0
+reqwest = { version = "0.11", features = ["blocking"] }
+anyhow = "1.0"
+clap = { version = "4.5", features = ["derive"] }
+
+[profile.release]
+strip = true          # Remove debug symbols (smaller binary)
+lto = true           # Link-time optimization (smaller + faster)
+codegen-units = 1    # Better optimization (slower compile, better runtime)
+panic = "abort"      # Smaller binaries
