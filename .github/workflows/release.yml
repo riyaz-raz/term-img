@@ -9,6 +9,16 @@ permissions:
 
 jobs:
   release:
-    uses: loonghao/rust-actions-toolkit/.github/workflows/reusable-release.yml@main
-    with:
-      binary-name: term-img
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build binaries
+        uses: taiki-e/upload-rust-binary-action@v1
+        with:
+          bin: term-img
+          tar: all
+          features: release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
