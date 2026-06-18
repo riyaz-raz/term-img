@@ -14,14 +14,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: taiki-e/create-gh-release-action@v1
         with:
-          name: ${{ github.ref_name }}
-          draft: false
-          prerelease: false
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   build:
     name: Build (${{ matrix.target }})
@@ -30,61 +25,29 @@ jobs:
     strategy:
       matrix:
         include:
-          # Linux
           - target: x86_64-unknown-linux-gnu
             os: ubuntu-latest
-            asset: term-img-linux-x86_64
-            ext: ""
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-latest
-            asset: term-img-linux-aarch64
-            ext: ""
-          # Windows
           - target: x86_64-pc-windows-msvc
             os: windows-latest
-            asset: term-img-windows-x86_64
-            ext: .exe
           - target: aarch64-pc-windows-msvc
             os: windows-latest
-            asset: term-img-windows-aarch64
-            ext: .exe
-          # macOS
           - target: x86_64-apple-darwin
             os: macos-latest
-            asset: term-img-macos-x86_64
-            ext: ""
           - target: aarch64-apple-darwin
             os: macos-latest
-            asset: term-img-macos-aarch64
-            ext: ""
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Rust target
-        run: rustup target add ${{ matrix.target }}
-
-      - name: Build
-        run: cargo build --release --target ${{ matrix.target }}
-
-      - name: Package (Linux/macOS)
-        if: matrix.os != 'windows-latest'
-        run: |
-          cd target/${{ matrix.target }}/release
-          tar -czf ../../../${{ matrix.asset }}.tar.gz term-img
-          cd ../../..
-
-      - name: Package (Windows)
-        if: matrix.os == 'windows-latest'
-        run: |
-          Compress-Archive -Path target/${{ matrix.target }}/release/term-img.exe -DestinationPath ${{ matrix.asset }}.zip
-
-      - name: Upload
-        uses: softprops/action-gh-release@v1
+      - name: Build and upload
+        uses: taiki-e/upload-rust-binary-action@v1
         with:
-          files: |
-            target/${{ matrix.target }}/release/term-img${{ matrix.ext }}
-            ${{ matrix.asset }}.*
+          bin: term-img
+          target: ${{ matrix.target }}
+          tar: all
+          zip: all
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
