@@ -16,51 +16,58 @@ jobs:
         include:
           - os: ubuntu-latest
             target: x86_64-unknown-linux-gnu
-            asset_name: term-img-linux-x86_64
-            extension: ""
-            package: tar.gz
+            asset_name: term-img-linux
+            ext: ""
           - os: windows-latest
             target: x86_64-pc-windows-msvc
-            asset_name: term-img-windows-x86_64
-            extension: .exe
-            package: zip
+            asset_name: term-img-windows
+            ext: .exe
           - os: macos-latest
             target: x86_64-apple-darwin
-            asset_name: term-img-macos-x86_64
-            extension: ""
-            package: dmg
+            asset_name: term-img-macos
+            ext: ""
 
     steps:
       - uses: actions/checkout@v4
 
+      - name: Install Rust target
+        run: rustup target add ${{ matrix.target }}
+
       - name: Build
         run: cargo build --release --target ${{ matrix.target }}
 
-      - name: Package (Linux)
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          tar -czf ${{ matrix.asset_name }}.tar.gz -C target/${{ matrix.target }}/release term-img
+      - name: Upload binary
+        uses: softprops/action-gh-release@v1
+        with:
+          files: target/${{ matrix.target }}/release/term-img${{ matrix.ext }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Package (Windows)
-        if: matrix.os == 'windows-latest'
-        run: |
-          Compress-Archive -Path target/${{ matrix.target }}/release/term-img.exe -DestinationPath ${{ matrix.asset_name }}.zip
+  dmg:
+    name: Create DMG
+    needs: release
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
 
-      - name: Package (macOS DMG)
-        if: matrix.os == 'macos-latest'
+      - name: Install target
+        run: rustup target add x86_64-apple-darwin
+
+      - name: Build
+        run: cargo build --release --target x86_64-apple-darwin
+
+      - name: Create DMG
         run: |
           mkdir -p "TermImg.app/Contents/MacOS"
-          cp "target/${{ matrix.target }}/release/term-img" "TermImg.app/Contents/MacOS/"
+          cp "target/x86_64-apple-darwin/release/term-img" "TermImg.app/Contents/MacOS/"
           hdiutil create -volname "TermImg" \
             -srcfolder "TermImg.app" \
             -ov -format UDZO \
-            ${{ matrix.asset_name }}.dmg
+            term-img.dmg
 
-      - name: Create Release and Upload Assets
+      - name: Upload DMG
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            ${{ matrix.asset_name }}.*
-            target/${{ matrix.target }}/release/term-img${{ matrix.extension }}
+          files: term-img.dmg
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
