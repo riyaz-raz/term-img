@@ -14,9 +14,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Create Release
-        uses: taiki-e/create-gh-release-action@v1
+        uses: softprops/action-gh-release@v1
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          name: ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   build:
     name: Build (${{ matrix.target }})
@@ -25,35 +30,71 @@ jobs:
     strategy:
       matrix:
         include:
-          - target: x86_64-unknown-linux-gnu
-            os: ubuntu-latest
-          - target: aarch64-unknown-linux-gnu
-            os: ubuntu-latest
-          - target: x86_64-pc-windows-msvc
-            os: windows-latest
-          - target: aarch64-pc-windows-msvc
-            os: windows-latest
-          - target: x86_64-apple-darwin
-            os: macos-latest
-          - target: aarch64-apple-darwin
-            os: macos-latest
+          # Linux
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            asset_name: term-img-linux-x86_64
+            ext: ""
+          - os: ubuntu-latest
+            target: aarch64-unknown-linux-gnu
+            asset_name: term-img-linux-aarch64
+            ext: ""
+          # Windows
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            asset_name: term-img-windows-x86_64
+            ext: .exe
+          - os: windows-latest
+            target: aarch64-pc-windows-msvc
+            asset_name: term-img-windows-aarch64
+            ext: .exe
+          # macOS
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            asset_name: term-img-macos-x86_64
+            ext: ""
+          - os: macos-latest
+            target: aarch64-apple-darwin
+            asset_name: term-img-macos-aarch64
+            ext: ""
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install cross
+      - name: Install cross (for ARM64 Linux)
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
         run: cargo install cross
 
-      - name: Build and upload with cross
-        uses: taiki-e/upload-rust-binary-action@v1
+      - name: Build with cross (ARM64 Linux)
+        if: matrix.target == 'aarch64-unknown-linux-gnu'
+        run: cross build --release --target ${{ matrix.target }}
+
+      - name: Build (all other targets)
+        if: matrix.target != 'aarch64-unknown-linux-gnu'
+        run: |
+          rustup target add ${{ matrix.target }}
+          cargo build --release --target ${{ matrix.target }}
+
+      - name: Package (Linux/macOS)
+        if: matrix.os != 'windows-latest'
+        run: |
+          cd target/${{ matrix.target }}/release
+          tar -czf ../../../${{ matrix.asset_name }}.tar.gz term-img
+          cd ../../..
+
+      - name: Package (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          Compress-Archive -Path target/${{ matrix.target }}/release/term-img.exe -DestinationPath ${{ matrix.asset_name }}.zip
+
+      - name: Upload
+        uses: softprops/action-gh-release@v1
         with:
-          bin: term-img
-          target: ${{ matrix.target }}
-          tar: all
-          zip: all
+          files: |
+            target/${{ matrix.target }}/release/term-img${{ matrix.ext }}
+            ${{ matrix.asset_name }}.*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CARGO: cross
 
 # name: Release
 
