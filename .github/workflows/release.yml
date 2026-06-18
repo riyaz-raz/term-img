@@ -29,7 +29,6 @@ jobs:
             os: ubuntu-latest
           - target: aarch64-unknown-linux-gnu
             os: ubuntu-latest
-            use-cross: true
           - target: x86_64-pc-windows-msvc
             os: windows-latest
           - target: aarch64-pc-windows-msvc
@@ -42,16 +41,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install cross (for ARM64 Linux)
-        if: matrix.use-cross == true
+      - name: Install cross
         run: cargo install cross
 
-      - name: Build with cross (ARM64 Linux)
-        if: matrix.use-cross == true
-        run: cross build --release --target ${{ matrix.target }}
-
-      - name: Build and upload (all other targets)
-        if: matrix.use-cross != true
+      - name: Build and upload with cross
         uses: taiki-e/upload-rust-binary-action@v1
         with:
           bin: term-img
@@ -60,16 +53,7 @@ jobs:
           zip: all
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload ARM64 Linux binary
-        if: matrix.use-cross == true
-        uses: softprops/action-gh-release@v1
-        with:
-          files: |
-            target/${{ matrix.target }}/release/term-img
-            target/${{ matrix.target }}/release/term-img.tar.gz
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CARGO: cross
 
 # name: Release
 
