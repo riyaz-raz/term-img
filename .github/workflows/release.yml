@@ -8,45 +8,59 @@ permissions:
   contents: write
 
 jobs:
-  create-release:
-    name: Create Release
-    runs-on: ubuntu-latest
-    outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
-    steps:
-      - name: Create Release
-        id: create_release
-        uses: softprops/action-gh-release@v1
-        with:
-          draft: false
-          prerelease: false
-          generate_release_notes: true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  build:
-    name: Build and Upload
-    needs: create-release
+  release:
+    name: Release
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         include:
-          - target: x86_64-unknown-linux-gnu
-            os: ubuntu-latest
-          - target: x86_64-pc-windows-gnu
-            os: windows-latest
-          - target: x86_64-apple-darwin
-            os: macos-latest
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            asset_name: term-img-linux-x86_64
+            extension: ""
+            package: tar.gz
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            asset_name: term-img-windows-x86_64
+            extension: .exe
+            package: zip
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            asset_name: term-img-macos-x86_64
+            extension: ""
+            package: dmg
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build binary
-        uses: taiki-e/upload-rust-binary-action@v1
+      - name: Build
+        run: cargo build --release --target ${{ matrix.target }}
+
+      - name: Package (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          tar -czf ${{ matrix.asset_name }}.tar.gz -C target/${{ matrix.target }}/release term-img
+
+      - name: Package (Windows)
+        if: matrix.os == 'windows-latest'
+        run: |
+          Compress-Archive -Path target/${{ matrix.target }}/release/term-img.exe -DestinationPath ${{ matrix.asset_name }}.zip
+
+      - name: Package (macOS DMG)
+        if: matrix.os == 'macos-latest'
+        run: |
+          mkdir -p "TermImg.app/Contents/MacOS"
+          cp "target/${{ matrix.target }}/release/term-img" "TermImg.app/Contents/MacOS/"
+          hdiutil create -volname "TermImg" \
+            -srcfolder "TermImg.app" \
+            -ov -format UDZO \
+            ${{ matrix.asset_name }}.dmg
+
+      - name: Create Release and Upload Assets
+        uses: softprops/action-gh-release@v1
         with:
-          bin: term-img
-          target: ${{ matrix.target }}
-          tar: all
-          features: release
+          files: |
+            ${{ matrix.asset_name }}.*
+            target/${{ matrix.target }}/release/term-img${{ matrix.extension }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
