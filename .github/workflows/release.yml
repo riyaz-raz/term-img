@@ -8,16 +8,44 @@ permissions:
   contents: write
 
 jobs:
-  release:
-    name: Release
+  create-release:
+    name: Create Release
     runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v1
+        with:
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  build:
+    name: Build and Upload
+    needs: create-release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - target: x86_64-unknown-linux-gnu
+            os: ubuntu-latest
+          - target: x86_64-pc-windows-gnu
+            os: windows-latest
+          - target: x86_64-apple-darwin
+            os: macos-latest
+
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build binaries
+      - name: Build binary
         uses: taiki-e/upload-rust-binary-action@v1
         with:
           bin: term-img
+          target: ${{ matrix.target }}
           tar: all
           features: release
         env:
