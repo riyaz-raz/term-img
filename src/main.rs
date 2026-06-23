@@ -21,9 +21,6 @@ fn main() -> anyhow::Result<()> {
     // Configure how to display
     let config = Config {
         width: Some(args.width),
-        height: None, // Auto-preserve aspect ratio
-        x: 0,
-        y: 0,
         transparent: args.transparent,
         truecolor: args.color,
         absolute_offset: false,
