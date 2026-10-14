@@ -8,9 +8,13 @@ on:
 env:
   CARGO_TERM_COLOR: always
 
+permissions: {}
+
 jobs:
   check:
     name: Format, lint and test
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -41,6 +45,7 @@ jobs:
     permissions:
       contents: read
       issues: write
+      checks: write
     steps:
       - uses: actions/checkout@v4
 
