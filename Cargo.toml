@@ -2,13 +2,24 @@
 name = "term-img"
 version = "0.1.0"
 edition = "2021"
+description = "Display images in your terminal from a local file, a URL, or stdin."
+repository = "https://github.com/riyaz-raz/term-img"
+license = "MIT"
+readme = "README.md"
+keywords = ["cli", "image", "terminal", "kitty", "sixel"]
+categories = ["command-line-utilities", "multimedia::images"]
 
 [dependencies]
-viuer = "0.7.0"  # Latest stable version
-image = "0.24.9"  # Compatible with viuer 0.7.0
-reqwest = { version = "0.11", features = ["blocking"] }
+viuer = "0.11"
+image = { version = "0.25", default-features = false, features = ["png", "jpeg", "gif", "webp", "bmp", "tiff", "ico"] }
+reqwest = { version = "0.12", default-features = false, features = ["blocking", "rustls-tls"] }
 anyhow = "1.0"
-clap = { version = "4.5", features = ["derive"] }
+clap = { version = "4.6", features = ["derive"] }
+
+[dev-dependencies]
+assert_cmd = "2"
+predicates = "3"
+tempfile = "3"
 
 [profile.release]
 strip = true          # Remove debug symbols (smaller binary)
