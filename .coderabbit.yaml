@@ -1,2 +1,31 @@
+language: en-US
+
 reviews:
+  profile: chill
   review_bot_prs: true
+  request_changes_workflow: false
+  high_level_summary: true
+  high_level_summary_placeholder: "@coderabbitai summary"
+  auto_title_placeholder: "@coderabbitai"
+  poem: false
+  review_status: true
+  collapse_walkthrough: false
+  sequence_diagrams: true
+  changed_files_summary: true
+  instructions: ""
+  path_filters: []
+  path_instructions: []
+  auto_review:
+    enabled: true
+    drafts: false
+    incremental_reviews: true
+  tools:
+    enabled: true
+
+chat:
+  auto_reply: true
+
+knowledge_base:
+  opt_out: false
+  learnings:
+    scope: auto
