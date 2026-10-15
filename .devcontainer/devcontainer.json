@@ -1,22 +1,30 @@
 {
     "name": "Rust Dev Container",
-    "image": "mcr.microsoft.com/devcontainers/rust:latest",
+    "image": "mcr.microsoft.com/devcontainers/rust:1-bookworm",
+    "features": {
+        "ghcr.io/devcontainers/features/github-cli:1": {}
+    },
     "customizations": {
         "vscode": {
             "extensions": [
                 "rust-lang.rust-analyzer",
                 "tamasfe.even-better-toml",
                 "vadimcn.vscode-lldb",
-                "serayuzgur.crates"
+                "fill-labs.dependi",
+                "usernamehw.errorlens"
             ],
             "settings": {
                 "lldb.executable": "/usr/bin/lldb",
                 "files.watcherExclude": {
                     "**/target/**": true
                 },
-                "rust-analyzer.check.command": "clippy"
+                "rust-analyzer.check.command": "clippy",
+                "[rust]": {
+                    "editor.defaultFormatter": "rust-lang.rust-analyzer",
+                    "editor.formatOnSave": true
+                }
             }
         }
     },
-    "postCreateCommand": "cargo check"
+    "postCreateCommand": "cargo fetch"
 }
