@@ -1,6 +1,6 @@
 [package]
 name = "term-img"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "Display images in your terminal from a local file, a URL, or stdin."
 repository = "https://github.com/riyaz-raz/term-img"
