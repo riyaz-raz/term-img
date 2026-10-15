@@ -1,0 +1,22 @@
+{
+    "name": "Rust Dev Container",
+    "image": "mcr.microsoft.com/devcontainers/rust:latest",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "rust-lang.rust-analyzer",
+                "tamasfe.even-better-toml",
+                "vadimcn.vscode-lldb",
+                "serayuzgur.crates"
+            ],
+            "settings": {
+                "lldb.executable": "/usr/bin/lldb",
+                "files.watcherExclude": {
+                    "**/target/**": true
+                },
+                "rust-analyzer.check.command": "clippy"
+            }
+        }
+    },
+    "postCreateCommand": "cargo check"
+}
