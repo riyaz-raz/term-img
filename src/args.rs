@@ -61,52 +61,7 @@ pub struct Args {
     pub verbose: bool,
 }
 
+// Unit tests live in a separate file so this module stays free of test code.
+// Compiled only for `cargo test`; never included in release/debug builds.
 #[cfg(test)]
-mod tests {
-    use super::*;
-    use clap::Parser;
-
-    #[test]
-    fn parses_source_and_defaults() {
-        let args = Args::try_parse_from(["term-img", "photo.png"]).unwrap();
-        assert_eq!(args.source, "photo.png");
-        assert!(args.width.is_none());
-        assert!(args.height.is_none());
-        assert!(args.color);
-        assert!(!args.no_color);
-        assert_eq!(args.protocol, Protocol::Auto);
-    }
-
-    #[test]
-    fn no_color_disables_truecolor() {
-        let args = Args::try_parse_from(["term-img", "photo.png", "--no-color"]).unwrap();
-        assert!(args.no_color);
-        // Mirrors the effective `truecolor` value computed in `main`.
-        assert!(!(args.color && !args.no_color));
-    }
-
-    #[test]
-    fn color_accepts_explicit_false() {
-        let args = Args::try_parse_from(["term-img", "photo.png", "--color=false"]).unwrap();
-        assert!(!args.color);
-    }
-
-    #[test]
-    fn color_accepts_bare_flag() {
-        let args = Args::try_parse_from(["term-img", "photo.png", "--color"]).unwrap();
-        assert!(args.color);
-    }
-
-    #[test]
-    fn color_does_not_consume_positional() {
-        let args = Args::try_parse_from(["term-img", "--color", "photo.png"]).unwrap();
-        assert!(args.color);
-        assert_eq!(args.source, "photo.png");
-    }
-
-    #[test]
-    fn parses_protocol() {
-        let args = Args::try_parse_from(["term-img", "photo.png", "--protocol", "kitty"]).unwrap();
-        assert_eq!(args.protocol, Protocol::Kitty);
-    }
-}
+mod tests;

@@ -49,33 +49,7 @@ fn decode(bytes: &[u8]) -> anyhow::Result<image::DynamicImage> {
     Ok(img)
 }
 
+// Unit tests live in a separate file so this module stays free of test code.
+// Compiled only for `cargo test`; never included in release/debug builds.
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    fn png_bytes() -> Vec<u8> {
-        let img = image::DynamicImage::ImageRgba8(image::RgbaImage::from_pixel(
-            3,
-            2,
-            image::Rgba([10, 20, 30, 255]),
-        ));
-        let mut bytes = Vec::new();
-        img.write_to(&mut Cursor::new(&mut bytes), image::ImageFormat::Png)
-            .unwrap();
-        bytes
-    }
-
-    #[test]
-    fn decodes_png_from_memory() {
-        let bytes = png_bytes();
-        let img = decode(&bytes).unwrap();
-        assert_eq!(img.width(), 3);
-        assert_eq!(img.height(), 2);
-    }
-
-    #[test]
-    fn missing_file_is_an_error() {
-        let err = load_image("/definitely/not/here_12345.png", false).unwrap_err();
-        assert!(err.to_string().contains("File not found"));
-    }
-}
+mod tests;
